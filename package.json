@@ -1,6 +1,6 @@
 {
   "name": "hexo-reference-tilden",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A plugin to support markdown footnotes and Wiki-Style tooltip reference in your Hexo blog posts.",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "reference",
     "tooltip"
   ],
-  "author": "Kun Chen",
+  "author": "TDJ",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kchen0x/hexo-reference/issues"
@@ -34,7 +34,7 @@
     "mocha-lcov-reporter": "^1.2.0"
   },
   "dependencies": {
-    "markdown-it": "^8.4.2",
+    "marked": "^2.0.0",
     "hexo-util": "^2.0.0"
   }
 }

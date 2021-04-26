@@ -1,9 +1,7 @@
 'use strict';
 
-var md = require('markdown-it')({
-    // allow HTML tags
-    html: true
-});
+var marked = require("marked");
+
 
 /**
  * Render markdown footnotes
@@ -52,12 +50,12 @@ function renderFootnotes(text) {
     // render (HTML) footnotes reference
     text = text.replace(reFootnoteIndex,
         function(match, index){
-            var tooltip = indexMap[index].content;
-            return '<sup id="fnref:' + index + '">' +
-                '<a href="#fn:'+ index +'" rel="footnote">' +
-                '<span class="hint--top hint--error hint--medium hint--rounded hint--bounce" aria-label="'
-                + tooltip +
-                '">[' + index +']</span></a></sup>';
+            // var tooltip = indexMap[index].content;
+            var tooltip = marked.parseInline(indexMap[index].content);
+            return '<span class="footnoteAnchorShift" id="fnref:' + index + '"></span><sup>' +
+                '<a class="footnote-link" href="#fn:'+ index +'" rel="footnote">' +
+                '<span id="tippy-i-'+ index +'" class="tippy-i" data-content="'+ 
+                encodeURIComponent(tooltip) +'">[' + index +']</span></a></sup>';
         });
 
     // sort footnotes by their index
@@ -67,21 +65,23 @@ function renderFootnotes(text) {
 
     // render footnotes (HTML)
     footnotes.forEach(function (footNote) {
-        html += '<li id="fn:' + footNote.index + '">';
-        html += '<span style="display: inline-block; vertical-align: top; padding-right: 10px; margin-left: -40px">';
+        html += '<div class="footnoteAnchorShift" id="fn:' + footNote.index + '"></div>';
+        html += '<div>';
+        html += '<span style="display: inline-block; vertical-align: top; padding-right: 1em; margin-left: -2.5px">[';
         html += footNote.index;
-        html += '.</span>';
-        html += '<span style="display: inline-block; vertical-align: top; margin-left: 10px;">';
-        html += md.renderInline(footNote.content.trim());
-        html += '<a href="#fnref:' + footNote.index + '" rev="footnote"> ↩</a></span></li>';
+        html += ']</span>';
+        html += '<span style="display: inline-block; vertical-align: top;">';
+        html += marked.parseInline(footNote.content.trim());
+        html += ' <a class="footnote-link" href="#fnref:' + footNote.index + '" rev="footnote"> ↩</a></span></div>';
     });
 
     // add footnotes at the end of the content
     if (footnotes.length) {
         text += '<div id="footnotes">';
-        text += '<hr>';
+        text += '<hr style="margin-top: 3em; border-color: var(--default-text-color)">';
+        text += '<h1>Reference</h1>'
         text += '<div id="footnotelist">';
-        text += '<ol style="list-style: none; padding-left: 0; margin-left: 40px">' + html + '</ol>';
+        text += '<div style="margin-left: 0.5em">' + html + '</div>';
         text += '</div></div>';
     }
     return text;
