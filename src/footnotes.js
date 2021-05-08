@@ -35,27 +35,26 @@ function renderFootnotes(text) {
         return '';
     });
 
-    // create map for looking footnotes array
-    function createLookMap(field) {
-        var map = {}
-        for (var i = 0; i < footnotes.length; i++) {
-            var item = footnotes[i]
-            var key = item[field]
-            map[key] = item
+    var indexMap = footnotes.reduce((map, cur) => {
+        map[cur.index] = {
+            content: cur.content,
+            idx: 0
         }
-        return map
-    }
-    var indexMap = createLookMap("index")
+        return map;
+    }, {})
 
     // render (HTML) footnotes reference
     text = text.replace(reFootnoteIndex,
         function(match, index){
-            // var tooltip = indexMap[index].content;
-            var tooltip = marked.parseInline(indexMap[index].content);
-            return '<span class="footnoteAnchorShift" id="fnref:' + index + '"></span><sup>' +
-                '<a class="footnote-link" href="#fn:'+ index +'" rel="footnote">' +
-                '<span id="tippy-i-'+ index +'" class="tippy-i" data-content="'+ 
-                encodeURIComponent(tooltip) +'">[' + index +']</span></a></sup>';
+            const item = indexMap[index]
+            item.idx++;
+            var tooltip = marked.parseInline(item.content.trim());
+            let postfix = ':'+String(item.idx);
+            return '<span class="footnoteAnchorShift" id="fnref:' + index + postfix + '"></span><sup>' +
+                '<button class="footnote-btn tippy-i" id="tippy-i-' + index + '"  ' +
+                ' data-content="' + encodeURIComponent(tooltip) +
+                '" onclick="location.href=\'#fn:' + index + '\'" type="button">[' +
+                index + ']</button></sup>';
         });
 
     // sort footnotes by their index
@@ -67,21 +66,28 @@ function renderFootnotes(text) {
     footnotes.forEach(function (footNote) {
         html += '<div class="footnoteAnchorShift" id="fn:' + footNote.index + '"></div>';
         html += '<div>';
-        html += '<span style="display: inline-block; vertical-align: top; padding-right: 1em; margin-left: -2.5px">[';
+        html += '<span class="fnIdx">[';
         html += footNote.index;
         html += ']</span>';
-        html += '<span style="display: inline-block; vertical-align: top;">';
+        html += '<span class="fnItem">';
         html += marked.parseInline(footNote.content.trim());
-        html += ' <a class="footnote-link" href="#fnref:' + footNote.index + '" rev="footnote"> ↩</a></span></div>';
+
+
+        const len = indexMap[footNote.index].idx;
+        for (let i = 0; i < len; ++i) {
+            html += '<a class="footnote-link footnote-icon" href="#fnref:' + footNote.index + ':' + String(i+1)
+                + '" rev="footnote">↩</a>';
+        }
+        html += '</span></div>';
     });
 
     // add footnotes at the end of the content
     if (footnotes.length) {
         text += '<div id="footnotes">';
-        text += '<hr style="margin-top: 3em; border-color: var(--default-text-color)">';
+        text += '<hr>';
         text += '<h1>Reference</h1>'
         text += '<div id="footnotelist">';
-        text += '<div style="margin-left: 0.5em">' + html + '</div>';
+        text += '<div class="footnotecontainer">' + html + '</div>';
         text += '</div></div>';
     }
     return text;
